@@ -18,6 +18,7 @@ int lives = 3;
 int score = 0;
 int highScore;
 int combo = 0;
+double timeTilNextBall = 5;
 double minTime = 5;
 double initialV;
 double startHeight; //Height of new ball
@@ -36,7 +37,7 @@ SKLabelNode *howToPlay;
 static const double lifeSize = 10.0;
 static const double distanceBetweenLives = 5.0;
 static const double MIN_TIME_BETWEEN_BALLS = 0.45;
-static const double NEW_BALL_MULTIPLIER = 1.5; //Multiplier of time between new ball added and any other ball
+static const double NEW_BALL_MULTIPLIER = 1.75; //Multiplier of time between new ball added and any other ball
 static const int STARTING_LIVES = 4;
 
 @implementation GameScene
@@ -135,10 +136,12 @@ static const uint32_t paddleCategory = 0x1 << 1;
         if (gameIsRunning) {
             CGPoint location = [touch locationInNode:self];
             //Set paddle location
-            if (location.x > self.frame.size.width/2.0)
-                position = MIN(3, position+1);
+            if (location.x < self.frame.size.width/3.0)
+                position = 1;
+            else if (location.x < 2.0*self.frame.size.width/3.0)
+                position = 2;
             else
-                position = MAX(1, position-1);
+                position = 3;
             paddle.position = CGPointMake(paddle.size.width/2.0 + (position-1)*paddle.size.width, paddle.size.height/2.0);
         }
         //Game Over, touch to resume game
@@ -158,13 +161,13 @@ static const uint32_t paddleCategory = 0x1 << 1;
     t = (double)currentTime;
     
     //Add new ball to balls if count of balls so far is less than level
-    if (count < level && currentTime - timeLastBall > minTime) {
+    if (count < level*2.0-1 && currentTime - timeLastBall > timeTilNextBall) {
         Ball *temp = [[Ball alloc] init];
         double timeGround = t + paddle.size.width/(initialV);
         bool works = true;
         for (long i=balls.count-1;i >= 0;i--) {
             Ball *test = [balls objectAtIndex:i];
-            if (test.getBounceNumber > 1 && timeGround <= test.getTimeTilGround + NEW_BALL_MULTIPLIER*MIN_TIME_BETWEEN_BALLS*(test.getBounceNumber-1) && timeGround >= test.getTimeTilGround - NEW_BALL_MULTIPLIER*MIN_TIME_BETWEEN_BALLS*(test.getBounceNumber-1)) {
+            if (test.getBounceNumber > 1 && timeGround <= test.getTimeTilGround + NEW_BALL_MULTIPLIER*MIN_TIME_BETWEEN_BALLS && timeGround >= test.getTimeTilGround - NEW_BALL_MULTIPLIER*MIN_TIME_BETWEEN_BALLS) {
                 works = false;
                 break;
             }
@@ -176,7 +179,7 @@ static const uint32_t paddleCategory = 0x1 << 1;
             [temp start:initialV withX:(-1*(temp.size.width/2)) withY:startHeight withTime:currentTime withTimeGround:timeGround];
             [balls addObject:temp];
             timeLastBall = currentTime;
-            minTime = (arc4random_uniform(7) + 1)/2.0;
+            timeTilNextBall = (arc4random_uniform((minTime+1)*2))/2.0 + 0.5;
         }
     }
     
@@ -211,10 +214,11 @@ static const uint32_t paddleCategory = 0x1 << 1;
     }
     
     //New level
-    if (goneCount == level) {
+    if (goneCount == (level*2)-1) {
         level++;
         goneCount = 0;
         count = 0;
+        minTime = fmax(1.0,-(1.0/2.0)*level+4.0);
     }
     
     
@@ -301,16 +305,12 @@ static const uint32_t paddleCategory = 0x1 << 1;
         angle *= M_PI/180.0; //Convert to radians
         velocity = sqrt((-1*ball.getGravity*paddle.size.width)/(sin(2.0*angle))); //Initial velocity
         timeTilGround = t + paddle.size.width/(velocity*cos(angle));
-        double multiplier; //If balls in position 1/3 or 3/1, make time til ground * 2.25
         if (ball.getBounceNumber != 3) {
             for (long i=balls.count-1;i >= 0;i--) {
-                multiplier = 1.0;
                 Ball *test = [balls objectAtIndex:i];
-                if ((ball.getBounceNumber == 1 && test.getBounceNumber == 3) || (ball.getBounceNumber == 3 && test.getBounceNumber == 1))
-                    multiplier = 2.25;
                 if (test.getBounceNumber != ball.getBounceNumber + 1 &&
                     test.getBounceNumber <= 3) {
-                    if (timeTilGround <= test.getTimeTilGround + MIN_TIME_BETWEEN_BALLS*multiplier && timeTilGround >= test.getTimeTilGround - MIN_TIME_BETWEEN_BALLS*multiplier) {
+                    if (timeTilGround <= test.getTimeTilGround + MIN_TIME_BETWEEN_BALLS && timeTilGround >= test.getTimeTilGround - MIN_TIME_BETWEEN_BALLS) {
                         works = false;
                         break;
                     }
