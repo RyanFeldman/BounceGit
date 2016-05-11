@@ -15,6 +15,7 @@
 
 @implementation GameData
 
+//
 +(id)data {
     GameData *data = [GameData new];
     NSString *path = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
