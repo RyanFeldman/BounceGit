@@ -36,9 +36,9 @@ SKLabelNode *howToPlay;
 
 static const double lifeSize = 10.0;
 static const double distanceBetweenLives = 5.0;
-static const double MIN_TIME_BETWEEN_BALLS = 0.45;
+static const double MIN_TIME_BETWEEN_BALLS = 0.35;
 static const double NEW_BALL_MULTIPLIER = 1.75; //Multiplier of time between new ball added and any other ball
-static const int STARTING_LIVES = 4;
+static const int STARTING_LIVES = 3;
 
 @implementation GameScene
 
@@ -179,7 +179,7 @@ static const uint32_t paddleCategory = 0x1 << 1;
             [temp start:initialV withX:(-1*(temp.size.width/2)) withY:startHeight withTime:currentTime withTimeGround:timeGround];
             [balls addObject:temp];
             timeLastBall = currentTime;
-            timeTilNextBall = (arc4random_uniform((minTime+1)*2))/2.0 + 0.5;
+            timeTilNextBall = (arc4random_uniform((minTime+1.0)*2.0))/2.0 + 0.5;
         }
     }
     

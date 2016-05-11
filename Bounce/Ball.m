@@ -49,6 +49,7 @@ int bounceNumber; //number of position it will hit next (1/2/3)
     self.physicsBody = [SKPhysicsBody bodyWithRectangleOfSize:self.size];
     self.physicsBody.categoryBitMask = ballCategory;
     self.physicsBody.contactTestBitMask = paddleCategory;
+    self.physicsBody.allowsRotation = NO;
     xVel = 0;
     yVel = 0;
     
